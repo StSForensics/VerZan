@@ -10,7 +10,7 @@ Related open work, by StS Forensics Ltd:
 - O4M Record Tests 2026 (v1.0), public comment draft until 1 December 2026: https://doi.org/10.5281/zenodo.23857888
 - AI records gap brief, UK and EU rules compared: https://doi.org/10.5281/zenodo.23546436
 
-Licence: code Apache-2.0 (see LICENSE), text CC BY 4.0. Copyright 2026 StS Forensics Ltd (company 17054694). Created by Gareth Wong, director. Provided AS IS, WITHOUT WARRANTY OF ANY KIND. See the Terms of use in the page. 
+Licence: code Apache-2.0 (see LICENSE and NOTICE), text CC BY 4.0. Copyright 2026 StS Forensics Ltd (company 17054694). Created by Gareth Wong, director. Provided AS IS, WITHOUT WARRANTY OF ANY KIND. See the Terms of use in the page. 
 
 Not a rating of any company and not legal advice. StS Forensics Ltd has not yet started trading.
 
