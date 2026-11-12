@@ -1,0 +1,29 @@
+VERZAN UPLOAD BY ZIP AND UNPACK (v1.2.12, English plus fr, de, es, ja)
+Prepared Thu 12 Nov 2026 01:45 London. Same method as the vectors, so no hand copying.
+
+Files
+VerZan_v1.2.12_site-files_2026-11-12.zip  (SHA-256 f7379f02fb81a84b28b0ba2eb2b19c7fa6ad18381864d401d44760ef2a5c1932; the zip hash is not reproducible, SHA256SUMS inside is the reference)
+unpack-verzan.yml  (the workflow text)
+
+Steps, in the VerZan repo (github.com/StSForensics/VerZan)
+1. Add file, Upload files. Drop the zip at the repo root. Commit changes.
+2. Add file, Create new file. Name it exactly: .github/workflows/unpack-verzan.yml
+   Paste the whole text of unpack-verzan.yml. Commit changes.
+3. Actions tab, choose "Unpack VerZan 1.2.12" on the left, Run workflow, Run workflow.
+   If Actions asks you to enable workflows, enable them.
+   Open the run. Expect a green tick. The log shows five ": OK" lines, then five lines "... ok".
+   If it fails with a permissions error: Settings, Actions, General, Workflow permissions, Read and write, Save, then run again.
+   If it fails a check, it commits nothing. Send me the red line.
+4. The workflow removes the zip and commits the five pages and SHA256SUMS. Wait up to 10 minutes.
+5. Private tab checks:
+   verzan.org            footer says v1.2.12; grey bar lists Francais, Deutsch, Espanol, Japanese
+   verzan.org/fr/        footer says v1.2.12-fr; bar lists English, Deutsch, Espanol, Japanese (not itself)
+   verzan.org/de/  verzan.org/es/  verzan.org/ja/   same idea
+   On each: drop any file, see a hash; press the delete demo, see pass then fail.
+   Footer link to github.com/StSForensics/o4m-record-tests opens.
+   If the site has not changed after 10 minutes: make any tiny edit in the web editor (for example add a space to the end of NOTE) and commit. That triggers the Pages build.
+6. Delete .github/workflows/unpack-verzan.yml (open it, three dots, Delete file, Commit) so the repo stays clean.
+7. Optional, by hand: About box (Description: Free browser page: fingerprint a file (SHA-256) and see what a deleted record does to a log. Nothing leaves the page. Website: https://verzan.org). README.md still says Version 1.2.5; change that one line to 1.2.12 when you have a minute.
+
+What the workflow checks before it commits (it stops if any fails)
+every file matches SHA256SUMS; each page says v1.2.12; each language bar lists the other four and not itself; canonical and x-default tags present; correct lang attribute; no em dashes.
