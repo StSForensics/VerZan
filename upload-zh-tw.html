@@ -1,0 +1,308 @@
+<!doctype html><html lang="zh-TW"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><title>VerZan Check</title><meta name="description" content="免費工具：在瀏覽器內計算檔案的數位指紋（SHA-256），並看看刪除一筆記錄對日誌有何影響。任何內容都不會離開本頁。"><meta property="og:title" content="VerZan Check"><meta property="og:description" content="這個檔案與當初被記錄的那個完全一樣嗎？在瀏覽器內計算指紋再作比對。任何內容都不會離開本頁。"><meta property="og:type" content="website"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'"><link rel="alternate" hreflang="en" href="https://stsforensics.github.io/VerZan/"><link rel="alternate" hreflang="fr" href="https://stsforensics.github.io/VerZan/fr/"><link rel="alternate" hreflang="de" href="https://stsforensics.github.io/VerZan/de/"><link rel="alternate" hreflang="es" href="https://stsforensics.github.io/VerZan/es/"><link rel="alternate" hreflang="ja" href="https://stsforensics.github.io/VerZan/ja/"><link rel="alternate" hreflang="zh-HK" href="https://stsforensics.github.io/VerZan/zh-hk/"><link rel="alternate" hreflang="zh-TW" href="https://stsforensics.github.io/VerZan/zh-tw/"><link rel="alternate" hreflang="zh-CN" href="https://stsforensics.github.io/VerZan/zh-cn/"><link rel="alternate" hreflang="x-default" href="https://stsforensics.github.io/VerZan/"><link rel="canonical" href="https://stsforensics.github.io/VerZan/zh-tw/"><meta name="referrer" content="no-referrer"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20160%20160%22%3E%3Crect%20width%3D%22160%22%20height%3D%22160%22%20rx%3D%2224%22%20fill%3D%22%23FAF9F5%22/%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23182720%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cline%20x1%3D%2280%22%20y1%3D%2210%22%20x2%3D%2280%22%20y2%3D%2230%22/%3E%3Cline%20x1%3D%2252%22%20y1%3D%2230%22%20x2%3D%22108%22%20y2%3D%2230%22/%3E%3Crect%20x%3D%2250%22%20y%3D%2242%22%20width%3D%2260%22%20height%3D%2254%22/%3E%3Cline%20x1%3D%2250%22%20y1%3D%2260%22%20x2%3D%22110%22%20y2%3D%2260%22/%3E%3Cline%20x1%3D%2250%22%20y1%3D%2278%22%20x2%3D%22110%22%20y2%3D%2278%22/%3E%3Cline%20x1%3D%2238%22%20y1%3D%22106%22%20x2%3D%22122%22%20y2%3D%22106%22/%3E%3C/g%3E%3Cpath%20d%3D%22M52%20126%20L72%20148%20L118%20116%22%20fill%3D%22none%22%20stroke%3D%22%23458D5F%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.langbar{font-size:.85rem;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--panel)}.langbar a{color:var(--accent)} </style></head><body>
+<style>
+/* Layout: one narrow evidence column; tool first, then the proof ladder, then the 23 checks as a filterable list */
+:root{
+  --bg:#eef1f3; --panel:#ffffff; --ink:#141a22; --muted:#55606e; --line:#d3d9df;
+  --accent:#2340c8; --accent-ink:#ffffff;
+  --ok:#11734b; --ok-bg:#e1f3ea; --bad:#a3271c; --bad-bg:#fbe6e3; --part:#8a5a00; --part-bg:#fbefd6;
+  --display:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --panel:#171e26; --ink:#e7ecf1; --muted:#9aa6b3; --line:#2b3540;
+  --accent:#8ea2ff; --accent-ink:#0f141a;
+  --ok:#6fd6a6; --ok-bg:#12302a; --bad:#ff8f84; --bad-bg:#3a1a17; --part:#f2c264; --part-bg:#36290f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#171e26; --ink:#e7ecf1; --muted:#9aa6b3; --line:#2b3540;
+  --accent:#8ea2ff; --accent-ink:#0f141a;
+  --ok:#6fd6a6; --ok-bg:#12302a; --bad:#ff8f84; --bad-bg:#3a1a17; --part:#f2c264; --part-bg:#36290f; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body)}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:28px 56px;display:grid;gap:36px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.45rem;font-weight:700}
+h3{font-size:1.02rem;font-weight:700}
+p{margin:0;max-width:65ch}
+.eyebrow{font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header{display:grid;gap:10px}
+.lede{font-size:1.12rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:14px}
+label{font-weight:700;font-size:.95rem}
+textarea,input[type=text]{width:100%;box-sizing:border-box;font:15px/1.5 var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px}
+textarea{min-height:90px;resize:vertical}
+textarea:focus,input:focus,button:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hash{font:600 .9rem/1.5 var(--mono);word-break:break-all;background:var(--bg);border-radius:6px;padding:10px;border:1px dashed var(--line)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button,.filebtn{font:700 .92rem var(--body);border:0;border-radius:6px;padding:9px 14px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+input[type=file]{font:14px var(--body);color:var(--muted)}
+.verdict{font:700 1rem var(--body);padding:10px 12px;border-radius:6px}
+.verdict.ok{background:var(--ok-bg);color:var(--ok)} .verdict.bad{background:var(--bad-bg);color:var(--bad)} .verdict.idle{color:var(--muted);padding-left:0}
+.note{font-size:.9rem;color:var(--muted)}
+.ladder{list-style:none;margin:0;padding:0;display:grid;gap:0;border-left:3px solid var(--line)}
+.ladder li{display:grid;grid-template-columns:2.2rem 1fr;gap:12px;padding:12px 0 12px 12px;border-bottom:1px solid var(--line)}
+.ladder li:last-child{border-bottom:0}
+.rung{font:700 1.05rem var(--mono);color:var(--accent)}
+.ladder .q{font-weight:700}
+.tag{display:inline-block;font:600 .72rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 7px;border-radius:4px;white-space:nowrap}
+.t-yes{background:var(--ok-bg);color:var(--ok)} .t-na{background:var(--bg);color:var(--muted);border:1px solid var(--line)} .t-part{background:var(--part-bg);color:var(--part)} .t-op{background:var(--bad-bg);color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 .85rem var(--body);border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tests{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.test{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;gap:6px;align-content:start;min-width:0}
+.test .top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.cid{font:700 .95rem var(--mono)}
+.test p{font-size:.93rem} .test .own{font-size:.88rem;color:var(--muted)} .steps{margin:0;padding-left:1.2rem;display:grid;gap:8px;max-width:65ch} progress{width:100%}
+.fit{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--bg);border-radius:8px;padding:16px;display:grid;gap:10px}
+.fit ul{margin:0;padding-left:1.2rem;display:grid;gap:8px;max-width:65ch}
+.brand{display:flex;align-items:center;gap:14px}.logo{width:56px;height:56px;flex:none;color:var(--ink)}
+footer{font-size:.85rem;color:var(--muted);display:grid;gap:6px;border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:no-preference){.verdict{transition:background .2s}}
+</style>
+
+<div class="wrap">
+  <div class="langbar" role="note">機器翻譯，尚未經母語人士校對。以英文版為準。 <a href="../" hreflang="en" lang="en">English</a> · <a href="../fr/" hreflang="fr" lang="fr">Français</a> · <a href="../de/" hreflang="de" lang="de">Deutsch</a> · <a href="../es/" hreflang="es" lang="es">Español</a> · <a href="../ja/" hreflang="ja" lang="ja">日本語</a> · <a href="../zh-hk/" hreflang="zh-HK" lang="zh-HK">繁體中文（香港）</a> · <a href="../zh-cn/" hreflang="zh-CN" lang="zh-CN">简体中文</a></div>
+  <header>
+    <span class="eyebrow">StS Forensics Ltd 的免費公益工具 · 完全在你的瀏覽器內運作</span>
+    <div class="brand"><svg class="logo" viewBox="0 0 160 160" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><line x1="80" y1="10" x2="80" y2="30"/><line x1="52" y1="30" x2="108" y2="30"/><rect x="50" y="42" width="60" height="54"/><line x1="50" y1="60" x2="110" y2="60"/><line x1="50" y1="78" x2="110" y2="78"/><line x1="38" y1="106" x2="122" y2="106"/></g><path d="M52 126 L72 148 L118 116" fill="none" stroke="#458D5F" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg><h1>VerZan Check</h1></div>
+    <p class="lede">這個檔案與當初被記錄的那個完全一樣嗎？在這裡計算它的數位指紋（SHA-256 雜湊值）再作比對。你輸入或放入的任何內容都不會離開本頁。</p>
+    <div class="chips" role="group" aria-label="你是哪一類使用者？">
+      <button class="chip mode" data-m="co" aria-pressed="true">我要查核一家公司的人工智慧</button>
+      <button class="chip mode" data-m="own" aria-pressed="false">我自己執行人工智慧模型</button>
+    </div>
+  </header>
+
+  <section class="panel" aria-labelledby="why">
+    <h2 id="why">為何有這個工具</h2>
+    <p>人工智慧聊天機器人和 AI 代理都是機率性的：同一個問題問兩次，可能得到兩個不同的答案。因此，當人工智慧承諾退款、報出價格或執行某項操作時，要知道當時發生了什麼，最可靠的依據是一份即時製作的記錄：存放在無人能悄悄改動的地方，並可由製作該記錄的公司以外的人查核。沒有這樣的記錄，爭議就只能憑你的說法，去對抗一份只由對方掌控的日誌。</p>
+    <p>你自己執行人工智慧模型時也一樣，不論是在筆記型電腦、家用伺服器還是小型開發板上。如果日後有人質疑你的模型寫過什麼或做過什麼，一份當時製作、並由外部時鐘封存的記錄，遠比一份你事後可以修改的日誌更有說服力。</p>
+    <p>法律也朝同一方向發展。歐盟新的《產品責任指令》（指令 (EU) 2024/2853）適用於 2026 年 12 月 8 日之後投放市場或投入使用的軟體（包括人工智慧）。根據該指令，受害人無須證明過失（但仍須證明產品有缺陷、所受損害，以及兩者之間的因果關係），法院可命令披露證據，而不披露證據可令法院推定產品有缺陷。<span class="ownonly" hidden> 該指令主要針對在商業活動中供應的產品。本頁不就它會否適用於只為自己執行模型的人表態；但請注意，其「製造商」的定義包括為自用而開發或生產產品的人（第 4 條第 (10) 項）。</span></p>
+    <p><strong>所以請問兩個問題：</strong>我可以取得記錄嗎？除你之外，還有其他人可以查核它嗎？本頁示範第一項查核如何運作。</p>
+  </section>
+
+  <section class="panel" aria-labelledby="try">
+    <h2 id="try">試試看：改動一個字</h2>
+    <label for="sample">文字（聊天機器人回覆示例）</label>
+    <textarea id="sample">客服代理：可以，我可以把你的 1,119 點數作為一次性的善意安排退還。退款已經處理。</textarea>
+    <div>
+      <div class="eyebrow" style="margin-bottom:6px">SHA-256 雜湊值（數位指紋）</div>
+      <div class="hash" id="sampleHash" aria-live="polite">計算中…</div>
+    </div>
+    <p class="note">改動上面任何一個字元，即使只是一個逗號，指紋也會完全不同。因此，較早前記下的指紋可以顯示檔案其後曾被改動。</p>
+  </section>
+
+  <section class="panel" aria-labelledby="omit">
+    <h2 id="omit">試試看：移除一筆記錄</h2>
+    <p>這是一份只有五筆記錄的示範日誌。每筆記錄在製作時已計算指紋，並帶有上一筆記錄的指紋。悄悄刪除其中一筆，然後執行兩項查核。</p>
+    <ol id="recs" class="steps"></ol>
+    <div class="row">
+      <button id="del" type="button">悄悄刪除第 3 筆記錄</button>
+      <button id="rst" type="button" class="ghost">放回去</button>
+    </div>
+    <div class="verdict idle" id="vAlt" aria-live="polite"></div>
+    <div class="verdict idle" id="vGap" aria-live="polite"></div>
+    <p class="note">第一項查核只問餘下的每筆記錄有沒有改動，它看不到一筆已經不存在的記錄。第二項查核問編號是否連續無缺，以及每筆記錄是否指向上一筆。這只是幾行程式的示範，並非真正的人工智慧日誌。真正的營運者如果掌控記錄的擷取位置，可以在記錄獲編號之前就把它丟棄；因此測試草案也要求由他人持有的計數（C14），以及記錄功能當時正在運作的證明（C22）。</p>
+  </section>
+
+  <section class="panel" aria-labelledby="regq">
+    <h2 id="regq">收到營運者交來的人工智慧記錄？要問的三個問題</h2>
+    <p>適用於主管機關、監督機構、法院、保險公司、審計師，以及任何從製作記錄的公司取得人工智慧記錄的人。本頁把這家公司稱為「營運者」；在歐盟《人工智慧法》下，它通常是「部署者」。</p>
+    <ol class="steps">
+      <li><strong>就營運者所聲明的範圍而言，記錄是否完整？</strong>先索取聲明：記錄什麼、多久記錄一次、記錄失敗時如何處理（C1），以及哪些缺漏已事先聲明。測試草案會報告每一項已聲明的缺漏；這類缺漏能否算作通過，仍在徵求意見。</li>
+      <li><strong>還有誰持有副本或計數？</strong>只與自身比對的記錄，無法顯示整份重寫或一貫少報。請查找由外部時鐘蓋上時間戳記、並由他人見證的檢查點（C6），以及由營運者無法控制的一方提供的計數，例如 AI 供應商本身的帳單（C14）。</li>
+      <li><strong>如果有一項記錄不見了或被改動，怎樣才會有人發現？</strong>編號和連結（C3）可顯示刪除，如上面的示範。計數器（C14）可顯示在編號之前已被丟棄的記錄。心跳訊號，即定期發出的運作訊號（C22），可顯示記錄功能何時停止。</li>
+    </ol>
+    <p class="note">其中兩項測試（T3 和 T14a）的測試向量草案展示了各種情況，包括兩種出了問題但查核仍然通過的情況，以及一種只能判為「待定」的情況，因為只有外部的副本或計數才能發現問題。測試向量附有供監督機構使用的淺白索引（REGULATOR_QUESTIONS.txt），載於 <a href="https://github.com/StSForensics/o4m-record-tests" rel="noopener">github.com/StSForensics/o4m-record-tests</a>。這些結果由作者自行執行。作者的一名家庭成員為他安排了一位第二讀者，另行編寫查核程式，其判定在 50 個輸入中有 31 個相符；此外沒有其他人重現過這些結果。這是閱讀輔助資料，並非任何主管機關的指引，亦非法律意見。</p>
+  </section>
+
+  <section class="panel" aria-labelledby="check">
+    <h2 id="check">查核你收到的檔案</h2>
+    <div class="row">
+      <input type="file" id="file" aria-label="選擇要計算指紋的檔案">
+    </div>
+    <div>
+      <div class="eyebrow" style="margin-bottom:6px">這個檔案的指紋</div>
+      <div class="hash" id="fileHash">尚未選擇檔案。</div>
+      <progress id="prog" max="100" value="0" hidden></progress>
+    </div>
+    <label for="expected">對方告知你應得到的指紋</label>
+    <input type="text" id="expected" placeholder="貼上登記冊、收據或電子郵件中的 64 個字元 SHA-256">
+    <div class="verdict idle" id="verdict" aria-live="polite">選擇檔案並貼上預期的指紋以作比對。</div>
+    <p class="note">相符表示這個檔案與當初計算指紋的檔案逐個位元組相同。它並不顯示檔案於何時、由誰製作，也不顯示內容是否屬實。下面的階梯列出每一項還需要什麼。</p>
+    <p class="note">這只是兩個數值的簡單比對，並非事實認定、真確性證明或專業意見，亦不應作為你作出法律、財務、安全或監管決定的唯一依據。</p>
+    <p class="note">大型檔案（例如數 GB 的模型權重檔案）會分段計算。以每秒約 100 MB 計，40 GB 的檔案在筆記型電腦上可能需時數分鐘，在手機或小型開發板上則長得多。不會上傳任何內容。手機可能根本無法開啟非常大的檔案。</p>
+  </section>
+
+  <section class="panel" aria-labelledby="ownh" id="ownpanel">
+    <h2 id="ownh">自己執行模型？保存一份他人可以查核的記錄</h2>
+    <p>你為自己保存的記錄，其價值只在於他人能查核多少。以下步驟可令它可供查核，而且不用花錢。步驟 1 至 4 需要記錄軟體；StS 並不製作這類軟體。</p>
+    <ol class="steps">
+      <li><strong>每個回答都保存：</strong>你問了什麼、得到什麼回覆（存放在你自己的機器上）、兩者各自的指紋、模型檔案的指紋（使用上面的方格）、所用軟體及其版本，以及設定（溫度、隨機種子）。單憑指紋無法顯示說過什麼。</li>
+      <li><strong>定期用外部時鐘封存。</strong>只把指紋傳送到免費的時間戳記服務（RFC 3161）或公開日誌，並保存它發回的回執；沒有回執，封存便無從查核。你的內容不會離開你的機器。封存顯示記錄在該時間之前已經存在，因此任何人（包括你自己）都無法把日期推前或事後改動而不被發現。它不能顯示你已記錄一切；這由步驟 3 處理。</li>
+      <li><strong>全程記錄，否則說明何時沒有記錄。</strong>一段你解釋不了的空白，會削弱其餘一切。</li>
+      <li><strong>如果你的人工智慧代你行事</strong>（發送電子郵件、發文、購物），在操作執行之前先行封存。</li>
+      <li><strong>一旦可能出現爭議，什麼都不要刪除。</strong>在那個時候刪除相關記錄，在法庭上可能對你不利。</li>
+      <li><strong>在手機上</strong>，其他應用程式通常看不到人工智慧應用程式的內部，因此記錄取決於該應用程式保存了什麼。如果模型在手機本機執行，其開發商可能什麼都沒有保存。請查看應用程式能否匯出對話記錄，定期匯出，並為每次匯出計算指紋和封存（步驟 1 和 2）。</li>
+    </ol>
+    <p class="note">記錄是雙面刃：它顯示實際發生的事，包括你自己輸入的指令。它保護誠實行事的人。這並非法律意見。</p>
+  </section>
+
+  <section aria-labelledby="ladderh" style="display:grid;gap:14px">
+    <h2 id="ladderh">記錄可以證明什麼，逐級來看</h2>
+    <ol class="ladder">
+      <li><span class="rung">1</span><div><div class="q">自計算指紋以來沒有改動</div><p>需要：一個你信任的 SHA-256 指紋。 <span class="tag t-yes">可在此查核</span></p></div></li>
+      <li><span class="rung">2</span><div><div class="q">在某個時間之前已經存在</div><p>需要：由獨立時間戳記機構蓋印的指紋（RFC 3161，或歐盟 eIDAS 規則下的合資格電子時間戳記）。 <span class="tag t-part">即將推出</span></p></div></li>
+      <li><span class="rung">3</span><div><div class="q">來自已知的一方</div><p>需要：以該方公布的金鑰驗證的數位簽章。 <span class="tag t-part">即將推出</span></p></div></li>
+      <li><span class="rung">4</span><div><div class="q">沒有人悄悄重寫登記冊</div><p>需要：記錄已列入一份由多方比對的公開透明度日誌。 <span class="tag t-part">即將推出</span></p></div></li>
+      <li><span class="rung">5</span><div><div class="q">沒有任何遺漏</div><p>需要：獨立的計數（例如 AI 供應商本身的帳單），加上一份說明擷取功能何時運作的聲明。<span class="ownonly" hidden> 在你自己的機器上沒有供應商帳單。記錄程式的心跳訊號和一份已聲明的缺漏清單是最佳替代，但它們無法顯示你從未在沒有記錄程式的情況下執行模型。</span> <span class="tag t-op" id="l5">需要營運者配合</span></p></div></li>
+      <li><span class="rung">6</span><div><div class="q">記錄所說的事確實發生過</div><p>需要：來自他人的記錄，例如顯示退款的銀行對帳單。一份完好無缺的虛假陳述記錄，仍然是虛假的。<span class="ownonly" hidden> 就你自己的代理而言：它所發電子郵件的收件人副本，或銀行的付款記錄。</span> <span class="tag t-part">部分可由你查核</span></p></div></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="testsh" style="display:grid;gap:14px">
+    <h2 id="testsh">23 項查核，用淺白的話說</h2>
+    <p class="note">取自公開徵求意見草案《O4M Record Tests 2026（v1.0）》的要求 C1 至 C23（<a href="https://doi.org/10.5281/zenodo.23857888" rel="noopener">doi.org/10.5281/zenodo.23857888</a>），CC BY 4.0，2026 年 11 月 1 日發布，徵求意見至 2026 年 12 月 1 日。以下的淺白說明只是摘要，以草案為準。 <span id="tagnote">標籤顯示持有記錄匯出檔的客戶，能否在沒有該公司協助下自行查核。</span></p>
+    <div class="chips" role="group" aria-label="篩選查核項目">
+      <button class="chip" data-f="all" aria-pressed="true">全部 23 項</button>
+      <button class="chip" data-f="yes" aria-pressed="false">你可以查核</button>
+      <button class="chip" data-f="part" aria-pressed="false">部分</button>
+      <button class="chip" data-f="op" aria-pressed="false" id="opchip">需要營運者配合</button>
+    </div>
+    <div class="tests" id="tests"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="bg">
+    <h2 id="bg">背景，以及本工具的定位</h2>
+    <p>我已就此發表一份英國與歐盟規則的公開比較（<a href="https://doi.org/10.5281/zenodo.23546436" rel="noopener">doi.org/10.5281/zenodo.23546436</a>）。在金融服務以外，我所審視的具約束力規則中，沒有一項明確要求人工智慧日誌的保存方式，須讓製作日誌一方以外的人能夠查核有否改動或遺漏。2026 年 11 月 1 日，我正正針對這項特性發表了公開測試，作為公開徵求意見草案，徵求意見至 2026 年 12 月 1 日（<a href="https://doi.org/10.5281/zenodo.23857888" rel="noopener">doi.org/10.5281/zenodo.23857888</a>）。</p>
+    <div class="fit" role="note" aria-labelledby="fith">
+      <h3 id="fith">這會與 SCITT、AIUC-1 或其他標準競爭嗎？</h3>
+      <p>不會，也無意如此。這些測試和本頁並不界定日誌格式、標準或證書。本頁不製作任何記錄，StS Forensics 也不供應它所查核的系統。這些測試只是向現有的工作多問一個問題：營運者以外的人，能否看出有東西被遺漏或改動？</p>
+      <ul>
+        <li><strong>SCITT</strong>（RFC 9943 所載的 IETF 架構）是把已簽署聲明登記到透明度服務的一種方法。這些測試與它並行。RFC 9943 本身在第 9.3 節指出，發出者可以提交部分聲明而不提交其他聲明，這正是這些測試所針對的缺口。</li>
+        <li><strong>AIUC-1</strong> 是一項每季更新的 AI 代理標準；其 2026 年第四季版本（2026 年 10 月 15 日）新增了就資料及隱私風險和問責風險進行強制第三方測試的要求。這些測試可為測試人員提供一些關於記錄的具體查核項目。它們並非 AIUC-1 的一部分，雙方亦無任何聯繫或認可關係。</li>
+        <li><strong>其他標準</strong>，例如 ETSI、CEN-CENELEC 和 ISO/IEC 的標準，屬於另外的工作。凡這些標準要求保存日誌之處，這些測試會問：外人能否查核這些日誌有否遺漏，而不只是有否改動？</li>
+      </ul>
+      <p class="note">一份記錄即使符合上述每一項標準，如果營運者以外沒有任何東西可用來查核有否遺漏，仍可能無法通過這些測試。歡迎在 2026 年 12 月 1 日前提出更正和意見：comments@sts-forensics.com，主旨「O4M Record Tests」。</p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="terms">
+    <h2 id="terms">使用條款</h2>
+    <ol class="steps">
+      <li>本頁免費。本頁按「現狀」提供，不附帶任何形式的保證，並採用 Apache License 2.0 授權（該授權條款第 7 及第 8 條適用於程式碼）。</li>
+      <li>使用本頁並不會與 StS Forensics Ltd 或 Gareth Wong 建立客戶、顧問、專家或其他專業關係。本頁並非證書、評級或保證。</li>
+      <li>在法律容許的最大範圍內，StS Forensics Ltd、其董事及貢獻者毋須就因使用或依賴本頁而引致的任何損失負責。</li>
+      <li>本條款並不限制因疏忽導致死亡或人身傷害、欺詐或欺詐性失實陳述，或法律不容許限制的任何其他事項的責任。如果你是消費者，你的法定權利不受影響。</li>
+      <li>本頁在你的瀏覽器內運作，不會向我們傳送任何內容，因此我們看不到你查核了什麼。本頁的代管服務商（GitHub）可能保存一般的伺服器造訪日誌。</li>
+      <li>本條款受英格蘭法律管轄，英格蘭及威爾斯法院具有司法管轄權，但不影響你在居住地享有的任何強制性權利。</li>
+    </ol>
+  </section>
+
+  <footer>
+    <span><strong>營運單位：</strong>VerZan Check 是 StS Forensics Ltd（倫敦）製作的免費工具。該公司研究如何讓系統營運者以外的人查核人工智慧活動的記錄。本工具免費。本頁只有一個檔案，所以它的原始碼就是頁面本身：檢視網頁原始碼即可閱讀每一行。同一個檔案以 Apache-2.0 授權發布於 <a href="https://github.com/StSForensics/VerZan">github.com/StSForensics/VerZan</a>。測試 T3 和 T14a 的測試向量草案及參考驗證程式（由作者自行執行；一位第二讀者在 50 個輸入中有 31 個相符；沒有其他人重現）載於 <a href="https://github.com/StSForensics/o4m-record-tests">github.com/StSForensics/o4m-record-tests</a>。文字採用 CC BY 4.0。Copyright 2026 StS Forensics Ltd（於英格蘭及威爾斯註冊，公司編號 17054694）。由董事 Gareth Wong 製作。StS Forensics Ltd 歡迎需要協助查核人工智慧記錄的機構洽詢。任何與本工具有關的有償工作，均會在本頁申報。聯絡：gaptable@sts-forensics.com</span>
+    <span><strong>隱私：</strong>指紋在你的瀏覽器內計算，使用瀏覽器內建的 Web Crypto；如檔案非常大，則使用本頁內的一小段程式。不會上傳任何檔案或文字；本頁不設定 cookie、不作追蹤，也不從其他網站載入任何內容。</span>
+    <span>本頁並非對任何公司的評級，亦非法律意見。指紋相符只證明階梯的第 1 級。按「現狀」提供，不附帶任何形式的保證，採用 Apache-2.0 授權；與任何軟體一樣，它可能有錯誤，重要事項請同時以其他方法查核。</span>
+    <span>VerZan Check v1.2.13-zh-TW（翻譯草稿），2026 年 11 月 13 日。英文版 v1.2.13 的譯本，以英文版為準。更改記錄見英文版頁面。</span>
+  </footer>
+</div>
+
+<script>
+const T=[["C1", "在記錄任何內容之前先寫下規則：記錄什麼、多久一次、失敗時如何處理。", "part", "yes", "寫一頁紙，說明你記錄什麼、多久記錄一次，以及記錄失敗時怎麼辦。"], ["C2", "記錄以單一而精確的位元組格式儲存，所以同一筆記錄永遠得出同一個指紋。", "yes", "yes", "符合規格的記錄軟體會做到這一點。"], ["C3", "每筆記錄都有編號並連結到上一筆，所以缺漏、調換或插入都會顯現。", "yes", "yes", "符合規格的記錄軟體會做到這一點。"], ["C4", "問了什麼、答了什麼，會以指紋封存；內容本身可以另行保管。", "part", "yes", "內容留在你的機器上保密；只有指紋需要對外傳送。"], ["C5", "每筆記錄都帶有簽署，所用金鑰是應用程式接觸不到的。", "yes", "part", "使用你的人工智慧軟體接觸不到的金鑰，例如硬體安全金鑰。系統一般的鑰匙圈通常對任何以你身分執行的程式開放，包括你的人工智慧軟體。它無法防範身為擁有人的你；這要靠外部時間戳記（C6）。"], ["C6", "定期設立檢查點，由外部時鐘蓋上時間戳記，並由獨立見證人共同簽署。", "yes", "yes", "免費的時間戳記服務和公開日誌可防止把日期推前，即使是你本人也做不到。"], ["C7", "每個回答都註明由哪個人工智慧模型、哪個版本產生。", "part", "yes", "為模型檔案本身計算指紋。這比使用雲端人工智慧容易，因為雲端的版本並不公開。"], ["C8", "以硬體證據顯示當時執行的確切軟體。", "op", "na", "大部分家用裝置無法證明執行過哪個軟體。請在記錄中說明。"], ["C9", "每項操作都可追溯到授權它的人或角色。", "op", "part", "如果有其他人共用你的機器或家用伺服器，這一點就很重要：給每個人各自的身分。"], ["C10", "每條簽署金鑰的歷史：何時發出、輪換或撤銷。", "yes", "yes", "記下你何時建立、更換或遺失金鑰。"], ["C11", "可以交給你的匯出檔，並附有證明，顯示每筆記錄都屬於某個已簽署的檢查點。", "yes", "yes", "匯出檔已在你手上；請以他人能閱讀的形式保存。"], ["C12", "記錄在可能出現爭議的整段期間內保存；任何刪除本身也會被記錄。", "part", "part", "在可能有人提出求償的期間內一直保留備份，可以長達數年。"], ["C13", "每個 AI 代理在啟動和停止時都要登記。", "op", "yes", "記下每個本機代理何時啟動、何時停止。"], ["C14", "已接收和已丟棄記錄的計數，與 AI 供應商本身的用量數字核對。", "part", "na", "本機模型沒有供應商帳單可供核對。請依靠心跳訊號（C22）並加以說明。如果你的系統會轉用雲端人工智慧，C14 仍適用於那一部分。"], ["C15", "時間來自一個已聲明、可信的時鐘，並在註明的誤差範圍之內。", "yes", "yes", "使用電腦的網路時間，加上外部時間戳記。"], ["C16", "所有人看到的是同一份日誌；向不同人展示不同版本是可以被發現的。", "yes", "yes", "使用公開的透明度日誌，而不是你自己的伺服器。"], ["C17", "每項現實世界的操作，都與他人的記錄相符，例如銀行或支付處理商的記錄。", "part", "part", "他人對同一事件的記錄：電子郵件收件人的副本、你的銀行對帳單。"], ["C18", "操作在生效之前已封存於記錄之中，而不是事後補寫。", "op", "yes", "對會採取行動的代理，在操作執行之前先行封存。"], ["C19", "如果時間戳記服務中斷，中斷本身會被記錄並標示，絕不隱瞞。", "yes", "yes", "免費的時間戳記服務會中斷；這段空白必須在你的記錄中顯示。"], ["C20", "查核軟體是開放原始碼的，任何人都可以重新建置並得出相同結果。", "yes", "yes", "使用任何人都可以重新建置的開放查核軟體。"], ["C21", "查核者披露由誰付費，並在記錄封存之後才隨機抽樣。", "yes", "yes", "如果你付費請人查核你的記錄，對方必須說明這一點。"], ["C22", "記錄程式定期發出心跳訊號；每項判定都列明記錄功能當時是正常運作、功能受損還是沒有運作。", "yes", "yes", "模型執行期間持續發出心跳訊號，令休眠和離線時間顯示為空白，而不是秘密。"], ["C23", "簽署金鑰存放在公司及其 AI 代理接觸不到的地方。", "part", "part", "讓金鑰遠離你的代理。要防範擁有人本身，只有外部時間戳記（C6）有用。"]];
+const L={co:{yes:["你可以查核","t-yes"],part:["部分","t-part"],op:["需要營運者配合","t-op"]},
+ own:{yes:["你可以自行設定","t-yes"],part:["部分","t-part"],na:["家中通常做不到：請說明","t-na"]}};
+let mode="co",filt="all";
+const box=document.getElementById('tests');
+function draw(){box.innerHTML="";T.forEach(([id,txt,k,ok,otxt])=>{const tag=mode==="co"?k:ok;
+  if(filt!=="all"&&tag!==filt)return;
+  const d=document.createElement('article');d.className='test';
+  d.innerHTML=`<div class="top"><span class="cid">${id}</span><span class="tag ${L[mode][tag][1]}">${L[mode][tag][0]}</span></div><p>${txt}</p>`+(mode==="own"?`<p class="own">${otxt}</p>`:"");box.appendChild(d);});}
+const chips=[...document.querySelectorAll('.chip:not(.mode)')];
+chips.forEach(b=>b.addEventListener('click',()=>{chips.forEach(c=>c.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');filt=b.dataset.f;draw();}));
+function setMode(m){mode=m;filt="all";chips.forEach(c=>c.setAttribute('aria-pressed',c.dataset.f==="all"?'true':'false'));
+  document.querySelectorAll('.mode').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m?'true':'false'));
+  document.querySelector('.chip[data-f=yes]').textContent=m==="co"?"你可以查核":"你可以自行設定";
+  const op=document.getElementById('opchip');op.dataset.f=m==="co"?"op":"na";op.textContent=m==="co"?"需要營運者配合":"家中通常做不到";
+  document.getElementById('tagnote').textContent=m==="co"?"標籤顯示持有記錄匯出檔的客戶，能否在沒有該公司協助下自行查核。":"標籤顯示自己執行模型的人能否在一般電腦上做到，灰色的一行說明做法。";
+  document.querySelectorAll('.ownonly').forEach(e=>e.hidden=(m!=="own"));
+  const l5=document.getElementById('l5');l5.className="tag "+(m==="co"?"t-op":"t-part");l5.textContent=m==="co"?"需要營運者配合":"部分";
+  if(m==="own")document.getElementById('ownpanel').scrollIntoView({behavior:"smooth",block:"start"});
+  draw();}
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+draw();
+
+function Sha256(){
+  const K=new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  const H=new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+  const W=new Uint32Array(64),buf=new Uint8Array(64);let bl=0,total=0;
+  function block(d,o){
+    for(let i=0;i<16;i++){const j=o+i*4;W[i]=(d[j]<<24)|(d[j+1]<<16)|(d[j+2]<<8)|d[j+3];}
+    for(let i=16;i<64;i++){const a=W[i-15],b=W[i-2];
+      const s0=((a>>>7)|(a<<25))^((a>>>18)|(a<<14))^(a>>>3);
+      const s1=((b>>>17)|(b<<15))^((b>>>19)|(b<<13))^(b>>>10);
+      W[i]=(W[i-16]+s0+W[i-7]+s1)|0;}
+    let a=H[0],b=H[1],c=H[2],e=H[4],f=H[5],g=H[6],h=H[7],dd=H[3];
+    for(let i=0;i<64;i++){
+      const S1=((e>>>6)|(e<<26))^((e>>>11)|(e<<21))^((e>>>25)|(e<<7));
+      const t1=(h+S1+((e&f)^(~e&g))+K[i]+W[i])|0;
+      const S0=((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10));
+      const t2=(S0+((a&b)^(a&c)^(b&c)))|0;
+      h=g;g=f;f=e;e=(dd+t1)|0;dd=c;c=b;b=a;a=(t1+t2)|0;}
+    H[0]+=a;H[1]+=b;H[2]+=c;H[3]+=dd;H[4]+=e;H[5]+=f;H[6]+=g;H[7]+=h;}
+  this.update=function(d){let i=0;total+=d.length;
+    if(bl>0){while(bl<64&&i<d.length)buf[bl++]=d[i++];if(bl===64){block(buf,0);bl=0;}}
+    for(;i+64<=d.length;i+=64)block(d,i);
+    while(i<d.length)buf[bl++]=d[i++];};
+  this.hex=function(){const bits=total*8,hi=Math.floor(bits/4294967296),lo=bits>>>0;
+    const pad=new Uint8Array(((bl<56)?56:120)-bl+8);pad[0]=0x80;const n=pad.length;
+    pad[n-8]=hi>>>24;pad[n-7]=hi>>>16;pad[n-6]=hi>>>8;pad[n-5]=hi;pad[n-4]=lo>>>24;pad[n-3]=lo>>>16;pad[n-2]=lo>>>8;pad[n-1]=lo;
+    const t=total;this.update(pad);total=t;
+    return [...H].map(x=>x.toString(16).padStart(8,'0')).join('');};
+}
+
+async function sha(buf){const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+const sample=document.getElementById('sample'),sh=document.getElementById('sampleHash');
+async function upd(){try{sh.textContent=await sha(new TextEncoder().encode(sample.value));}catch(e){const s=new Sha256();s.update(new TextEncoder().encode(sample.value));sh.textContent=s.hex();}}
+sample.addEventListener('input',upd);upd();
+
+(function(){
+  const texts=["代理開啟了求償檔案。","代理報出了和解金額。","代理承諾退還 1,119 點數。","代理發出了確認電子郵件。","代理結束了求償個案。"];
+  let recs=[],full=[],deleted=false;
+  const ol=document.getElementById('recs'),vA=document.getElementById('vAlt'),vG=document.getElementById('vGap'),bd=document.getElementById('del');
+  async function build(){let prev="start";full=[];
+    for(let i=0;i<texts.length;i++){const seq=i+1,fp=await sha(new TextEncoder().encode(seq+"|"+prev+"|"+texts[i]));full.push({seq,prev,text:texts[i],fp});prev=fp;}
+    recs=full.slice();deleted=false;await render();}
+  async function render(){
+    ol.innerHTML="";recs.forEach(r=>{const li=document.createElement('li');li.textContent="第 "+r.seq+" 筆記錄："+r.text+"（指紋 "+r.fp.slice(0,8)+"...）";ol.appendChild(li);});
+    bd.disabled=deleted;
+    let altOk=true;for(const r of recs){const h=await sha(new TextEncoder().encode(r.seq+"|"+r.prev+"|"+r.text));if(h!==r.fp)altOk=false;}
+    vA.className="verdict "+(altOk?"ok":"bad");
+    vA.textContent="查核 1：每筆記錄有沒有改動？"+(altOk?"通過。餘下的每筆記錄都與計算指紋時完全一樣。":"不通過。有記錄被改動。");
+    let gap=null;for(let i=0;i<recs.length;i++){const want=i+1;if(recs[i].seq!==want){gap=want;break;}if(i>0&&recs[i].prev!==recs[i-1].fp){gap=recs[i].seq-1;break;}}
+    vG.className="verdict "+(gap===null?"ok":"bad");
+    vG.textContent="查核 2：有沒有東西不見了？"+(gap===null?"通過。編號由 1 連續排到 "+recs.length+"，每筆記錄都指向上一筆。":"不通過。第 "+gap+" 筆記錄不見了。");}
+  bd.addEventListener('click',()=>{recs=full.filter(r=>r.seq!==3);deleted=true;render();});
+  document.getElementById('rst').addEventListener('click',()=>{recs=full.slice();deleted=false;render();});
+  build();
+})();
+
+const BIG=256*1024*1024,CH=32*1024*1024;
+async function hashFile(f,prog,live){
+  if(f.size<=BIG&&window.crypto&&crypto.subtle){try{return await sha(await f.arrayBuffer());}catch(e){}}
+  const s=new Sha256();prog.hidden=false;prog.value=0;
+  for(let o=0;o<f.size;o+=CH){if(!live())return null;s.update(new Uint8Array(await f.slice(o,o+CH).arrayBuffer()));
+    if(!live())return null;prog.value=Math.round(100*Math.min(o+CH,f.size)/f.size);fh.textContent='正在計算指紋… '+prog.value+'%';}
+  prog.hidden=true;return s.hex();}
+
+let fileHex="";const fh=document.getElementById('fileHash'),ex=document.getElementById('expected'),v=document.getElementById('verdict'),pg=document.getElementById('prog');
+function compare(){const m64=ex.value.match(/[0-9a-f]{64}/i);const want=m64?m64[0].toLowerCase():ex.value.replace(/[^0-9a-fA-F]/g,'').toLowerCase();
+  if(!fileHex||!want){v.className='verdict idle';v.textContent='選擇檔案並貼上預期的指紋以作比對。';return;}
+  if(want.length!==64){v.className='verdict bad';v.textContent='預期的指紋應為 64 個十六進制字元。請檢查是否完整複製。';return;}
+  if(want===fileHex){v.className='verdict ok';v.textContent='相符。這個檔案與當初計算指紋的檔案逐個位元組相同。';}
+  else{v.className='verdict bad';v.textContent='不相符。這個檔案與當初計算指紋的檔案不同，或者指紋複製有誤。';}}
+let run=0;
+document.getElementById('file').addEventListener('change',async e=>{const my=++run;const f=e.target.files[0];fileHex='';compare();if(!f){fh.textContent='尚未選擇檔案。';pg.hidden=true;return;}fh.textContent='計算中…';
+  try{const h=await hashFile(f,pg,()=>my===run);if(my!==run)return;fileHex=h;fh.textContent=fileHex;}catch(err){if(my!==run)return;pg.hidden=true;fh.textContent='無法讀取該檔案。在手機上，非常大的檔案可能因太大而無法開啟。';fileHex='';}compare();});
+ex.addEventListener('input',compare);
+</script>
+
+</body></html>
